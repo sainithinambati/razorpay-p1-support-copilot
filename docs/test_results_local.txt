@@ -1,0 +1,11 @@
+.REJECTED BY DATABASE: "update p1_tickets set merchant_message = 'x' where ticket_id = 'T-0001'" -> permission denied for table p1_tickets
+.REJECTED BY DATABASE: "update p1_merchants set settlement_status = 'Settled' where merchant_id = 'M1007'" -> permission denied for table p1_merchants
+.REJECTED BY DATABASE: "update p1_knowledgebase set guidance = 'x' where kb_id = 'KB-07'" -> permission denied for table p1_knowledgebase
+.REJECTED BY DATABASE: "delete from p1_tickets where ticket_id = 'T-0001'" -> permission denied for table p1_tickets
+.REJECTED BY DATABASE: "delete from p1_merchants where merchant_id = 'M1001'" -> permission denied for table p1_merchants
+.REJECTED BY DATABASE: "delete from p1_knowledgebase where kb_id = 'KB-01'" -> permission denied for table p1_knowledgebase
+.REJECTED BY DATABASE: "insert into p1_tickets values ('T-9999', 'x', 'Chat', null, 'x')" -> permission denied for table p1_tickets
+.REJECTED BY DATABASE: "insert into p1_merchants (merchant_id, business_name) values ('M9999', 'x')" -> permission denied for table p1_merchants
+.REJECTED BY DATABASE: 'truncate p1_tickets' -> permission denied for table p1_tickets
+.REJECTED BY DATABASE: 'alter table p1_tickets add column ai_status text' -> must be owner of table p1_tickets
+103 passed in 4.75s

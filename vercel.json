@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/worker.py": { "maxDuration": 60, "includeFiles": "api/_lib/**" },
+    "api/webhook.py": { "maxDuration": 60, "includeFiles": "api/_lib/**" },
+    "api/export.py": { "maxDuration": 30, "includeFiles": "api/_lib/**" },
+    "api/health.py": { "maxDuration": 15, "includeFiles": "api/_lib/**" }
+  },
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+}

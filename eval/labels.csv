@@ -1,0 +1,47 @@
+ticket_id,case_type,expected_category,expected_action,expected_team,expected_risk_level,expected_kb_ids,notes
+T-0041,Missing merchant ID (English),Payment Failure,ASK_FOR_INFO,,Medium,KB-16,No structured ID; topic still classified
+T-0102,Missing merchant ID (English),Settlement,ASK_FOR_INFO,,Medium,KB-16,No structured ID
+T-0075,Missing merchant ID (Hinglish),Settlement,ASK_FOR_INFO,,Medium,KB-16,No structured ID; Hinglish reply expected
+T-0034,Ambiguous message with ID,Unclear,ASK_FOR_INFO,,Medium,KB-16,No topic can be identified
+T-0067,Vague payment failure with ID,Payment Failure,ASK_FOR_INFO,,Medium,KB-06;KB-16,Success rate 94.0 so no mandatory escalation
+T-0013,Topic-only vague settlement,Settlement,ASK_FOR_INFO,,Medium,KB-01;KB-16,Merchant record shows Settled so nothing explains the issue
+T-0107,Delayed settlement with system date (asks for today),Settlement,AUTO_RESOLVE,,Medium,KB-02,Share only 02 Oct 2026; never agree to today
+T-0039,Delayed settlement with system date,Settlement,AUTO_RESOLVE,,Medium,KB-02,
+T-0083,Risk-review hold (Hinglish),Settlement,ESCALATE,Risk Ops,High,KB-03,Do not reveal the hold reason
+T-0016,Chargeback-reserve hold,Settlement,ESCALATE,Risk Ops,High,KB-03,Do not reveal the hold reason
+T-0079,KYC-pending hold (Hinglish),Settlement,AUTO_RESOLVE,,Medium,KB-04,
+T-0001,Bank-account mismatch hold (Hinglish),Settlement,AUTO_RESOLVE,,Medium,KB-05,Merchant asks for release; no release promise
+T-0018,Settled merchant asking about payout (angry),Settlement,AUTO_RESOLVE,,Medium,KB-01,
+T-0014,Payment success below 85%,Payment Failure,ESCALATE,Payments Ops,High,KB-06,70.6%
+T-0009,Money deducted but order failed (rate normal),Payment Failure,AUTO_RESOLVE,,Medium,KB-06,Auto-reversal is not a refund
+T-0080,Money deducted but order failed (rate below 85%),Payment Failure,ESCALATE,Payments Ops,High,KB-06,77.9%
+T-0005,Standard refund (Hinglish),Refund,AUTO_RESOLVE,,Medium,KB-07,Rs 12000
+T-0015,Refund of Rs 1 lakh or more,Refund,ESCALATE,Refund Ops,High,KB-07,Rs 250000; no timeline
+T-0137,Refund of Rs 1 lakh or more,Refund,ESCALATE,Refund Ops,High,KB-07,Rs 900000; merchant on risk hold is irrelevant to the refund rule
+T-0043,Chargeback notice,Chargeback,AUTO_RESOLVE,,Medium,KB-08,
+T-0104,Request to block a chargeback (Hinglish),Chargeback,AUTO_RESOLVE,,Medium,KB-08,Must say disputes cannot be blocked in advance
+T-0003,Fee waiver request,Fees & Pricing,ESCALATE,Account Manager,Medium,KB-09,
+T-0044,Fee-difference refund request,Fees & Pricing,ESCALATE,Account Manager,Medium,KB-09,
+T-0101,Pricing threat (Hinglish angry),Fees & Pricing,ESCALATE,Account Manager,Medium,KB-09,
+T-0088,GST invoice request,Fees & Pricing,AUTO_RESOLVE,,Low,KB-09,
+T-0027,Legal threat,Legal / Regulatory,ESCALATE,Legal,Critical,KB-15,
+T-0031,Lawyer threat,Legal / Regulatory,ESCALATE,Legal,Critical,KB-15,
+T-0021,Regulator complaint (RBI),Legal / Regulatory,ESCALATE,Legal,Critical,KB-15,
+T-0115,Media threat,Legal / Regulatory,ESCALATE,Legal,Critical,KB-15,
+T-0078,Accuses Razorpay of fraud (Hinglish),Legal / Regulatory,ESCALATE,Legal,Critical,KB-15,Consumer forum threat
+T-0002,Data-security allegation with police threat (Hinglish),Security,ESCALATE,Security,Critical,KB-15,Security takes precedence over Legal
+T-0030,Data-security allegation,Security,ESCALATE,Security,Critical,KB-15,
+T-0060,Account takeover,Security,ESCALATE,Security,Critical,KB-15,
+T-0138,Staff bribery allegation,Staff Misconduct,ESCALATE,Risk Ops,Critical,KB-15,
+T-0070,Account closure,Account Closure,ESCALATE,Account Manager + Risk Ops,High,KB-17,Has refunds and a dispute outstanding
+T-0052,SIGNATURE_MISMATCH,API & Integration,AUTO_RESOLVE,,Low,KB-12,
+T-0068,Authentication failed on live site,API & Integration,AUTO_RESOLVE,,Low,KB-14,
+T-0113,Auth failure from a merchant below 85% (rule must not fire),API & Integration,AUTO_RESOLVE,,Low,KB-14,84.0% is irrelevant for an API ticket
+T-0125,Signature failure from a merchant below 85% (rule must not fire),API & Integration,AUTO_RESOLVE,,Low,KB-12,76.3% is irrelevant for an API ticket
+T-0047,Technical fault with no KB fix,API & Integration,ESCALATE,Tech Support,Medium,KB-16,
+T-0145,Technical fault with no KB fix,API & Integration,ESCALATE,Tech Support,Medium,KB-16,
+T-0141,Webhooks not received (Hinglish),API & Integration,AUTO_RESOLVE,,Low,KB-13,
+T-0017,Is this KYC re-verification genuine,KYC,AUTO_RESOLVE,,Medium,KB-10,
+T-0010,KYC document list (Hinglish),KYC,AUTO_RESOLVE,,Low,KB-10,
+T-0025,Company name change (Hinglish),Account Change,AUTO_RESOLVE,,Low,KB-11,Fresh application required
+T-0029,Email and mobile change,Account Change,AUTO_RESOLVE,,Low,KB-11,OTP verification
