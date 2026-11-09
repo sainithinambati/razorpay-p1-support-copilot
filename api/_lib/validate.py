@@ -64,8 +64,14 @@ NEGATIONS = r"(never|not|don't|do not|na karein|mat|no one)"
 RESOLVED_CLAIMS = [r"\b(has been|is now|is) (resolved|fixed|sorted)\b", r"\bissue (is|has been) closed\b"]
 
 
+LIST_MARKER = re.compile(r"(?m)^\s*\d{1,2}[.)]\s")
+NEGATED_BEFORE = re.compile(r"(can't|cannot|can not|not|never|won't|nahi|nahin)\b[^.]{0,25}$", re.IGNORECASE)
+
+
 def validate_reply(draft: str, base_draft: str, decision, ticket: dict, merchant: dict | None,
-                   all_merchants: dict, lang: str) -> list:
+                   all_merchants: dict, lang: str, approved_sources: str = "") -> list:
+    """approved_sources: text of the KB articles used and the permitted merchant facts.
+    Numbers from these are allowed (they are approved facts), in addition to the base draft."""
     v = []
     text = draft or ""
     low = text.lower()
@@ -79,8 +85,12 @@ def validate_reply(draft: str, base_draft: str, decision, ticket: dict, merchant
         v.append(Violation("too_long", "KB-16", text[:80] + "...", "Draft is longer than 1600 characters; KB-16 requires brief replies"))
 
     # 1. Invented numbers: dates, amounts, timelines -----------------------------------
-    allowed = _numbers(base_draft) | _numbers(ticket.get("merchant_message", "")) | _numbers(ticket.get("ticket_id", ""))
+    allowed = (_numbers(base_draft) | _numbers(ticket.get("merchant_message", "")) |
+               _numbers(ticket.get("ticket_id", "")) | _numbers(approved_sources))
+    list_marker_spans = [m.span() for m in LIST_MARKER.finditer(text)]
     for m in re.finditer(r"\d[\d,]*(?:\.\d+)?", text):
+        if any(a <= m.start() < b for a, b in list_marker_spans):
+            continue  # "1." at the start of a line is list numbering, not a fact
         n = m.group().replace(",", "").rstrip(".").lstrip("0") or "0"
         if n not in allowed:
             v.append(Violation("invented_number", "KB-16", _snippet(text, m),
@@ -90,7 +100,19 @@ def validate_reply(draft: str, base_draft: str, decision, ticket: dict, merchant
             v.append(Violation("invented_date", "KB-02", _snippet(text, m), "Date not taken from the merchant record"))
     for p in TIME_PROMISES:
         for m in re.finditer(p, text, re.IGNORECASE):
+            if NEGATED_BEFORE.search(text[max(0, m.start() - 40):m.start()]):
+                continue  # "can't be done right away" is the opposite of a promise
             v.append(Violation("time_promise", "KB-16", _snippet(text, m), "Commits to a time ('today', 'tomorrow' and similar) not shown in the system"))
+
+    # 1b. Escalated tickets: no timeline unless the approved draft already states it (KB-03, KB-07, KB-16).
+    if action == "ESCALATE":
+        dur = re.compile(r"\b\d+(?:\s*-\s*\d+)?\s*(?:business |calendar |working )?(?:days?|din|hours?|ghante|weeks?)\b", re.IGNORECASE)
+        base_durs = {re.sub(r"\s+", " ", x.lower()) for x in dur.findall(base_draft)} | \
+                    {re.sub(r"\s+", " ", m.group().lower()) for m in dur.finditer(base_draft)}
+        for m in dur.finditer(text):
+            if re.sub(r"\s+", " ", m.group().lower()) not in base_durs:
+                v.append(Violation("escalation_timeline", "KB-07" if decision.category == "Refund" else "KB-16",
+                                   _snippet(text, m), "Gives a timeline on an escalated ticket that the system does not support"))
 
     # 2. Promises ---------------------------------------------------------------------
     for p, kb, why in PROMISE_PATTERNS:

@@ -100,7 +100,9 @@ def analyse(ticket: dict, merchant: dict | None, kb: dict, all_merchants: dict, 
 
     # Validate ---------------------------------------------------------------------------
     blocked = None
-    violations = validate_reply(draft, base, d, ticket, merchant, all_merchants, lang)
+    approved_sources = " ".join(str(x) for x in fact_sheet["kb_text"].values() if x) + " " + \
+        " ".join(f"{k} {v}" for k, v in facts.items())
+    violations = validate_reply(draft, base, d, ticket, merchant, all_merchants, lang, approved_sources)
     validation_status, failure_reason = "passed", None
     if violations:
         blocked = {
@@ -119,7 +121,7 @@ def analyse(ticket: dict, merchant: dict | None, kb: dict, all_merchants: dict, 
         d.human_review_required = True
         d.review_reasons.append("Draft failed output validation")
         # Safe fallback: the approved template if it passes, otherwise a generic acknowledgment.
-        if draft_source == "claude" and not validate_reply(base, base, d, ticket, merchant, all_merchants, lang):
+        if draft_source == "claude" and not validate_reply(base, base, d, ticket, merchant, all_merchants, lang, approved_sources):
             draft = base
         else:
             draft = fallback_ack(lang, d.action)

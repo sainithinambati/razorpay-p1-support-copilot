@@ -237,3 +237,45 @@ def test_evaluation_set_offline(results):
                 (l["expected_category"], l["expected_action"], l["expected_team"], l["expected_risk_level"]):
             misses.append((l["ticket_id"], row["category"], row["action"], row["escalation_team"], row["risk_level"]))
     assert not misses, misses
+
+
+# Real Claude drafts that were wrongly blocked in the first live run (must now pass) --------------------------
+SAFE_CLAUDE_DRAFTS = [
+    ("T-0010", "Namaste Mosaic Stores team,\n\nHumse sampark karne ke liye dhanyavaad. Aapka KYC status abhi Verified hai. KYC ke liye ye documents chahiye hote hain: business ya owner ka PAN, address proof, bank account proof, GST certificate (agar GST-registered hain), aur authorised signatory ka ID.\n\nRe-verification 24 months ke baad ya details change hone par trigger ho sakti hai. Genuine re-verification requests sirf Dashboard ya @example.com emails se aati hain.\n\nDhanyavaad,\nRazorpay Support"),
+    ("T-0070", "Hi Madhur Enterprises team,\n\nThanks for reaching out. Account closure is processed only after all pending settlements, refunds and disputes are cleared, so it can't be done right away. Our records show 1 refund in process and 1 open dispute on your account. I've passed your request to your Account Manager and the team that handles closures, and they will guide you through the next steps.\n\nRegards,\nRazorpay Support"),
+    ("T-0104", "Namaste Jade Naturals team,\n\nHumse sampark karne ke liye dhanyavaad. Abhi aapke account par 0 open chargebacks hain. Disputes ko pehle se block nahi kiya ja sakta.\n\nJab koi customer kisi payment ko dispute karta hai, toh aapko Dashboard ke Disputes section mein notice milta hai. Aap evidence ke saath uska jawab de sakte hain. Iske liye aapko 7 calendar days ke andar evidence (invoice, proof of delivery aur customer ke saath communication) upload karna hoga. Deadline miss hone par dispute automatically lost ho jata hai.\n\nDhanyavaad,\nRazorpay Support"),
+    ("T-0141", "Namaste Mosaic Crafts team,\n\nHumse sampark karne ke liye dhanyavaad. Webhook receive na hone par, kripya yeh check karein:\n1. Aapka webhook URL publicly reachable hai.\n2. Woh 5 seconds ke andar HTTP 200 return karta hai.\n3. Event aapki webhook settings mein subscribed hai.\n\nFailed webhooks 24 hours tak retry hote hain.\n\nDhanyavaad,\nRazorpay Support"),
+]
+
+
+def _sources(row):
+    kb = " ".join(KB["articles"][k]["guidance"] for k in row["relevant_kb_ids"])
+    return kb + " " + " ".join(f"{k} {v}" for k, v in row["merchant_facts_used"].items())
+
+
+def _decision(row):
+    from _lib.engine import Decision
+    return Decision(row["category"], row["action"], row["escalation_team"], row["risk_level"], "x", row["relevant_kb_ids"])
+
+
+@pytest.mark.parametrize("tid,draft", SAFE_CLAUDE_DRAFTS)
+def test_safe_claude_drafts_now_pass(results, tid, draft):
+    row = results[tid]["row"]
+    t = BY_ID[tid]
+    v = validate_reply(draft, row["drafted_reply"], _decision(row), t, MERCHANTS.get(t["merchant_id"]), NAMES,
+                       row["language_style"], _sources(row))
+    assert not v, [(x.rule, x.statement) for x in v]
+
+
+@pytest.mark.parametrize("tid,draft,rule", [
+    ("T-0015", "Hi,\n\nWe have escalated your refund; it will be credited within 5-7 business days. Regards", "escalation_timeline"),
+    ("T-0016", "Hi,\n\nYour hold can last up to 5 business days and our specialist team will review it. Regards", "escalation_timeline"),
+    ("T-0107", "Hi,\n\nWe will not delay further, it will reach you today. Regards", "time_promise"),
+    ("T-0039", "Hi,\n\nYour settlement will arrive on 05 Oct 2026. Regards", "invented"),
+])
+def test_unsafe_drafts_still_blocked_with_kb_sources(results, tid, draft, rule):
+    row = results[tid]["row"]
+    t = BY_ID[tid]
+    v = validate_reply(draft, row["drafted_reply"], _decision(row), t, MERCHANTS.get(t["merchant_id"]), NAMES,
+                       row["language_style"], _sources(row))
+    assert any(rule in x.rule for x in v), [x.rule for x in v]
