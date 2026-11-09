@@ -47,9 +47,13 @@ export default function Overview({ session, roles }: { session: Session | null; 
     await load();
   };
 
+  const [starting, setStarting] = useState(false);
   const start = async () => {
+    if (starting) return;
+    setStarting(true);
     setMsg("");
     const { data, error } = await sb.rpc("start_run", { p_mode: mode });
+    setStarting(false);
     if (error) { setMsg(error.message); return; }
     setActive({ run_id: data, total_jobs: 0, done: 0, failed: 0, pending: 0, processing: 0 });
     drive(data as string);
@@ -71,7 +75,7 @@ export default function Overview({ session, roles }: { session: Session | null; 
             <option value="remaining">Run remaining tickets (never analysed)</option>
             <option value="failed">Rerun failed tickets</option>
           </select>
-          <button onClick={start} disabled={!isOperator || (active && active.pending + active.processing > 0)}>Run AI Analysis</button>
+          <button onClick={start} disabled={starting || !isOperator || (active && active.pending + active.processing > 0)}>Run AI Analysis</button>
           {active && active.pending + active.processing > 0 && <button className="ghost" onClick={() => (stop.current = true)}>Pause</button>}
           {unfinished && !active && isOperator && <button className="ghost" onClick={() => { setActive(unfinished); drive(unfinished.run_id); }}>Resume unfinished run</button>}
           {!isOperator && <span className="muted">Sign in with an operator account to run.</span>}

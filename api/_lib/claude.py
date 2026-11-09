@@ -32,11 +32,11 @@ def _call(system: str, user: str, tool: dict, max_tokens: int = 800) -> dict:
     body = {
         "model": model_name(),
         "max_tokens": max_tokens,
-        "temperature": 0,
-        "system": system,
+        "system": system + f"\n\nAlways respond by calling the {tool['name']} tool exactly once. Do not reply with plain text.",
         "messages": [{"role": "user", "content": user}],
         "tools": [tool],
-        "tool_choice": {"type": "tool", "name": tool["name"]},
+        # Some current models reject forced tool_choice ("tool"/"any"), so use "auto" and instruct instead.
+        "tool_choice": {"type": "auto"},
     }
     req = urllib.request.Request(
         API_URL, data=json.dumps(body).encode(), method="POST",
@@ -52,6 +52,14 @@ def _call(system: str, user: str, tool: dict, max_tokens: int = 800) -> dict:
     for block in data.get("content", []):
         if block.get("type") == "tool_use" and block.get("name") == tool["name"]:
             return block["input"]
+    # Fallback: the model answered in text; accept a JSON object if it contains one.
+    text = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
+    start, end = text.find("{"), text.rfind("}")
+    if start != -1 and end > start:
+        try:
+            return json.loads(text[start:end + 1])
+        except json.JSONDecodeError:
+            pass
     raise ClaudeError("No tool output returned")
 
 
