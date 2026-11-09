@@ -132,6 +132,9 @@ def validate_reply(draft: str, base_draft: str, decision, ticket: dict, merchant
         for m in re.finditer(p, text, re.IGNORECASE):
             v.append(Violation("argument", "KB-15", _snippet(text, m), "Argues with the merchant"))
     if critical:
+        for m in re.finditer(r"\b(sorry|apologi[sz]e\w*|apolog(y|ies)|regret\w*|maafi|kshama|justified|jayaz|valid (point|concern|complaint)|you('re| are) right)\b", text, re.IGNORECASE):
+            v.append(Violation("critical_apology", "KB-15", _snippet(text, m),
+                               "Apologises or agrees the complaint is justified in a legal, security or misconduct case, which can read as admitting fault"))
         for p in RESOLVED_CLAIMS + [r"\bsteps to\b", r"\bplease (re-?add|update|retry|upload)\b"]:
             for m in re.finditer(p, text, re.IGNORECASE):
                 v.append(Violation("critical_substantive_reply", "KB-15", _snippet(text, m),

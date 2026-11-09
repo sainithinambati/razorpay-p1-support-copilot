@@ -81,7 +81,7 @@ def analyse(ticket: dict, merchant: dict | None, kb: dict, all_merchants: dict, 
     base = build_reply(d, lang, tone, params, ext, name)
     facts = _jsonable({k: v for k, v in d.facts.items() if k in PERMITTED_FACT_KEYS and v is not None})
     fact_sheet = {
-        "ticket_category": d.category, "approved_action": d.action,
+        "ticket_category": d.category, "approved_action": d.action, "risk_level": d.risk_level,
         "approved_escalation_team": d.escalation_team, "merchant_facts_permitted": facts,
         "relevant_kb_ids": d.kb_ids, "language_style_required": lang, "tone": tone,
         "ask_for": d.ask_for, "prohibited": PROHIBITED,

@@ -279,3 +279,15 @@ def test_unsafe_drafts_still_blocked_with_kb_sources(results, tid, draft, rule):
     v = validate_reply(draft, row["drafted_reply"], _decision(row), t, MERCHANTS.get(t["merchant_id"]), NAMES,
                        row["language_style"], _sources(row))
     assert any(rule in x.rule for x in v), [x.rule for x in v]
+
+
+@pytest.mark.parametrize("tid,draft", [
+    ("T-0027", "Hi Kiran Furnishings team,\n\nI'm sorry for the frustration this has caused, and thank you for raising it with us. Your message has been escalated to the appropriate team for immediate review.\n\nRegards,\nRazorpay Support"),
+    ("T-0002", "Namaste Vista Retail team,\n\nHum maafi chahte hain, aapki chinta bilkul jayaz hai. Aapka message sambandhit team ko escalate kar diya gaya hai.\n\nDhanyavaad,\nRazorpay Support"),
+])
+def test_critical_drafts_cannot_apologise(results, tid, draft):
+    row = results[tid]["row"]
+    t = BY_ID[tid]
+    v = validate_reply(draft, row["drafted_reply"], _decision(row), t, MERCHANTS.get(t["merchant_id"]), NAMES,
+                       row["language_style"], _sources(row))
+    assert any(x.rule == "critical_apology" for x in v), [x.rule for x in v]

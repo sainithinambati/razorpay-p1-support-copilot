@@ -130,7 +130,7 @@ The AI can only write to `ai_kb_suggestions`.
 
 ```
 pip install -r requirements.txt pytest
-python -m pytest tests/test_engine.py          # 80 rule, validation and evaluation tests (no database needed)
+python -m pytest tests/test_engine.py          # 82 rule, validation and evaluation tests (no database needed)
 # Database tests: build a Postgres from tests/local_supabase_stub.sql + supabase/migrations/*.sql, then
 TEST_ADMIN_URL=... DATABASE_URL=<ai_processor url> python -m pytest tests/test_database.py   # 31 tests
 ```
