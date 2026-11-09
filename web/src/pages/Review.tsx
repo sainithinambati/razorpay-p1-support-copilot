@@ -8,14 +8,17 @@ export default function Review() {
     fetchAll("v_current_results").then((all) =>
       setRows(all.filter((r) => r.human_review_required || r.validation_status !== "passed")));
   }, []);
-  if (!rows) return <p className="muted">Loading...</p>;
+  if (!rows) return <p className="muted">Loading.</p>;
+  const crit = rows.filter((r) => r.risk_level === "Critical").length;
+  const blocked = rows.filter((r) => r.validation_status === "failed_fallback").length;
   return (
     <>
-      <div className="card"><p className="muted">
-        Tickets a person must check before anything is sent: critical cases, drafts that failed validation, classifier fallbacks,
-        low-confidence classifications and refunds the merchant says are overdue. Click a row to see why.
-      </p></div>
-      <Results rows={rows} title="Human-review queue" />
+      <div className="reasons">
+        <div className="reason t-crit"><b>{crit}</b> critical cases (legal, security, staff misconduct). A specialist team owns the reply.</div>
+        <div className="reason t-high"><b>{blocked}</b> drafts the safety checker stopped. A safe fallback is in place.</div>
+        <div className="reason t-ask"><b>{rows.filter((r) => r.risk_level !== "Critical" && r.validation_status !== "failed_fallback").length}</b> other flags, such as overdue refunds or low confidence. Open a ticket to see why.</div>
+      </div>
+      <Results rows={rows} title="Flagged tickets" />
     </>
   );
 }
