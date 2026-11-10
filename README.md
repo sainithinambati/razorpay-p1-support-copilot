@@ -122,7 +122,7 @@ The AI can only write to `ai_kb_suggestions`.
 
 ## Running it
 
-* **Full analysis:** sign in with an operator account > *Run & status* > choose *Run all tickets* > **Run AI Analysis**. Keep the tab open (about 5 to 10 minutes with Claude). If you close it, the sweeper continues at about 5 tickets a minute; *Resume unfinished run* picks it back up.
+* **Full analysis:** no sign-in needed (one run at a time, at most 4 a day, set by `public_runs_per_day` in `app_config`) > *Run & status* > choose *Run all tickets* > **Run AI Analysis**. Keep the tab open (about 5 to 10 minutes with Claude). If you close it, the sweeper continues at about 5 tickets a minute; *Resume unfinished run* picks it back up.
 * **Export:** *150-ticket results* > **Export CSV** or **Export XLSX** (or `GET /api/export?format=xlsx`). Columns: `ticket_id, category, action, escalation_team, risk_level, drafted_reply`.
 * **Secrets:** see `docs/SETUP_KEYS.md`.
 
@@ -130,7 +130,7 @@ The AI can only write to `ai_kb_suggestions`.
 
 ```
 pip install -r requirements.txt pytest
-python -m pytest tests/test_engine.py          # 82 rule, validation and evaluation tests (no database needed)
+python -m pytest tests/test_engine.py          # 72 rule, validation and evaluation tests (no database needed)
 # Database tests: build a Postgres from tests/local_supabase_stub.sql + supabase/migrations/*.sql, then
 TEST_ADMIN_URL=... DATABASE_URL=<ai_processor url> python -m pytest tests/test_database.py   # 31 tests
 ```

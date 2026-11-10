@@ -65,7 +65,7 @@ export default function Overview({ session, roles, go }: { session: Session | nu
     drive(data as string);
   };
 
-  const isOperator = roles.includes("operator");
+  const canRun = true; // public demo: anyone can run; the database limits how many runs exist
   const running = active && active.pending + active.processing > 0;
   const unfinished = runs.find((r) => r.run_type === "batch" && (r.pending > 0 || r.processing > 0));
   const n = rows.length;
@@ -114,15 +114,14 @@ export default function Overview({ session, roles, go }: { session: Session | nu
           <li><b>Export</b><span>Download the 6-column table from All 150 results.</span></li>
         </ol>
         <div className="row wrap">
-          <select value={mode} onChange={(e) => setMode(e.target.value)} disabled={!isOperator} aria-label="Which tickets to run">
+          <select value={mode} onChange={(e) => setMode(e.target.value)} disabled={running} aria-label="Which tickets to run">
             <option value="all">All 150 tickets</option>
             <option value="remaining">Only tickets never analysed</option>
             <option value="failed">Only tickets that failed</option>
           </select>
-          <button className="btn" onClick={start} disabled={starting || !isOperator || running}>{running ? "Running" : "Run analysis"}</button>
+          <button className="btn" onClick={start} disabled={starting || !canRun || running}>{running ? "Running" : "Run analysis"}</button>
           {running && <button className="link" onClick={() => (stop.current = true)}>Pause</button>}
-          {unfinished && !active && isOperator && <button className="btn soft" onClick={() => { setActive(unfinished); drive(unfinished.run_id); }}>Resume unfinished run</button>}
-          {!isOperator && <span className="muted small">{session ? "Your account needs the operator role to run." : "Sign in with an operator account to run."}</span>}
+          {unfinished && !active && canRun && <button className="btn soft" onClick={() => { setActive(unfinished); drive(unfinished.run_id); }}>Resume unfinished run</button>}
         </div>
         {active && (
           <div className="progress">

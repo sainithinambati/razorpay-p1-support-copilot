@@ -88,8 +88,7 @@ def test_anon_cannot_write_anything():
     with admin() as conn:
         conn.execute("set role anon")
         for sql in ("insert into ai_ticket_analysis (run_id) values (gen_random_uuid())",
-                    "update kb_rule_versions set status = 'retired'",
-                    "select start_run('all')"):
+                    "update kb_rule_versions set status = 'retired'"):
             with pytest.raises(psycopg.errors.InsufficientPrivilege):
                 conn.execute(sql)
 
@@ -116,11 +115,32 @@ def drain(run_id, only=None):
     return out
 
 
-def test_only_operators_can_start_runs(users):
+@pytest.fixture(scope="module", autouse=True)
+def high_run_cap():
+    """The public daily cap protects API credit in production; tests start many runs."""
     with admin() as conn:
-        as_user(conn, users["c"])
-        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        conn.execute("insert into app_config (key, value) values ('public_runs_per_day', '1000') "
+                     "on conflict (key) do update set value = excluded.value")
+    yield
+
+
+def test_public_run_guards():
+    """Anyone may start a run, but only one at a time and at most N per day."""
+    with admin() as conn:
+        conn.execute("set role anon")
+        run = conn.execute("select start_run('all') r").fetchone()["r"]
+        with pytest.raises(psycopg.errors.RaiseException, match="already in progress"):
             conn.execute("select start_run('all')")
+        conn.execute("reset role")
+        conn.execute("delete from ai_jobs where run_id = %s", (run,))
+        n = conn.execute("select count(*) n from ai_analysis_runs where run_type = 'batch' and created_by is null "
+                         "and created_at > now() - interval '24 hours'").fetchone()["n"]
+        conn.execute("update app_config set value = %s where key = 'public_runs_per_day'", (str(n),))
+        conn.execute("set role anon")
+        with pytest.raises(psycopg.errors.RaiseException, match="daily limit"):
+            conn.execute("select start_run('all')")
+        conn.execute("reset role")
+        conn.execute("update app_config set value = '1000' where key = 'public_runs_per_day'")
 
 
 def test_full_run_writes_one_row_per_ticket_and_rerun_keeps_history(users):
@@ -158,6 +178,8 @@ def test_concurrent_claims_never_overlap(users):
     b = c2.execute("select job_id from claim_jobs(%s, 5, 150)", (run_id,)).fetchall()  # c1 not yet committed
     c1.commit(); c2.commit()
     assert a and b and not ({r["job_id"] for r in a} & {r["job_id"] for r in b})
+    with admin() as conn:  # expire the test leases so the run can finish (one run at a time)
+        conn.execute("update ai_jobs set lease_until = now() - interval '1 second' where run_id = %s and status = 'processing'", (run_id,))
     drain(run_id)
 
 

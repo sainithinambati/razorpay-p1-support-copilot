@@ -74,7 +74,6 @@ export default function App() {
             </div>
           ))}
         </nav>
-        <Auth session={session} roles={roles} />
         <p className="sidefoot">Synthetic data. Auto-send is off: every reply is a draft for a person to send.</p>
       </aside>
 
@@ -93,48 +92,5 @@ export default function App() {
         {tab === "insights" && <Insights />}
       </main>
     </div>
-  );
-}
-
-const ROLE_NAMES: Record<string, string> = { operator: "Operator", triage_agent: "Triage agent", kb_editor: "KB editor", kb_approver: "KB approver" };
-
-function Auth({ session, roles }: { session: Session | null; roles: string[] }) {
-  const [email, setEmail] = useState("");
-  const [pw, setPw] = useState("");
-  const [msg, setMsg] = useState("");
-  const [open, setOpen] = useState(false);
-  if (session) {
-    return (
-      <div className="who">
-        <span className="whoemail">{session.user.email}</span>
-        <div className="chips">{roles.length ? roles.map((r) => <span key={r} className="chip">{ROLE_NAMES[r] || r}</span>) : <span className="muted">No role yet. Ask the owner for one.</span>}</div>
-        <button className="link" onClick={() => sb.auth.signOut()}>Sign out</button>
-      </div>
-    );
-  }
-  if (!open) {
-    return (
-      <div className="who">
-        <span className="muted">You are viewing read-only.</span>
-        <button className="btn soft" onClick={() => setOpen(true)}>Sign in to run or review</button>
-      </div>
-    );
-  }
-  const go = async (signup: boolean) => {
-    setMsg("");
-    const r = signup ? await sb.auth.signUp({ email, password: pw }) : await sb.auth.signInWithPassword({ email, password: pw });
-    if (r.error) setMsg(r.error.message);
-    else if (signup) setMsg("Account created. Confirm your email if asked, then ask the owner for a role.");
-  };
-  return (
-    <form className="who" onSubmit={(e) => { e.preventDefault(); go(false); }}>
-      <input aria-label="Email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input aria-label="Password" placeholder="Password" type="password" value={pw} onChange={(e) => setPw(e.target.value)} />
-      <div className="row">
-        <button className="btn" type="submit">Sign in</button>
-        <button className="link" type="button" onClick={() => go(true)}>Create account</button>
-      </div>
-      {msg && <span className="muted small">{msg}</span>}
-    </form>
   );
 }

@@ -21,7 +21,7 @@ export default function Blocked({ session }: { session: Session | null }) {
     <section className="card">
       <h2>Replies that must not be sent</h2>
       <p className="muted">Drafts stopped by output validation. The merchant never sees these; a safe fallback was used and a person must review.
-        {session ? "" : " Sign in to see the full failed drafts (restricted)."}</p>
+        </p>
       <label className="row" style={{ textTransform: "none", fontSize: 13 }}>
         <input type="checkbox" checked={allRuns} onChange={(e) => setAllRuns(e.target.checked)} /> Show all runs (default: latest batch run only)
       </label>
